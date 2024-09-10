@@ -1,4 +1,7 @@
+use anyhow::Result;
 use clap::Parser;
+use std::fs::File;
+use std::io::{self, BufRead, BufReader};
 
 /// Rust version of `cat`
 #[derive(Parser, Debug)]
@@ -17,8 +20,26 @@ struct Args {
     number_nonblank_lines: bool,
 }
 
-fn main() {
-    let args = Args::parse();
+fn open(filename: &str) -> Result<Box<dyn BufRead>> {
+    match filename {
+        "-" => Ok(Box::new(BufReader::new(io::stdin()))),
+        _ => Ok(Box::new(BufReader::new(File::open(filename)?))),
+    }
+}
 
-    println!("{args:#?}");
+fn run(args: Args) -> Result<()> {
+    for filename in args.files {
+        match open(&filename) {
+            Err(err) => eprintln!("Failed to open {filename}: {err}"),
+            Ok(_) => println!("Opened {filename}"),
+        }
+    }
+    Ok(())
+}
+
+fn main() {
+    if let Err(e) = run(Args::parse()) {
+        eprintln!("{e}");
+        std::process::exit(1);
+    }
 }
