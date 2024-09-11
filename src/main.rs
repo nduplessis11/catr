@@ -32,10 +32,18 @@ fn run(args: Args) -> Result<()> {
         match open(&filename) {
             Err(err) => eprintln!("Failed to open {filename}: {err}"),
             Ok(file) => {
-                for (line_num, line_result) in file.lines().enumerate() {
-                    let line = line_result?;
+                let mut prev_num = 0;
+                for (line_num, line) in file.lines().enumerate() {
+                    let line = line?;
                     if args.number_lines {
                         println!("{:>6}\t{line}", line_num + 1);
+                    } else if args.number_nonblank_lines {
+                        if line.is_empty() {
+                            println!();
+                        } else {
+                            prev_num += 1;
+                            println!("{prev_num:>6}\t{line}");
+                        }
                     } else {
                         println!("{line}");
                     }
