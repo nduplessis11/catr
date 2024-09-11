@@ -31,7 +31,16 @@ fn run(args: Args) -> Result<()> {
     for filename in args.files {
         match open(&filename) {
             Err(err) => eprintln!("Failed to open {filename}: {err}"),
-            Ok(_) => println!("Opened {filename}"),
+            Ok(file) => {
+                for (line_num, line_result) in file.lines().enumerate() {
+                    let line = line_result?;
+                    if args.number_lines {
+                        println!("{:>6}\t{line}", line_num + 1);
+                    } else {
+                        println!("{line}");
+                    }
+                }
+            }
         }
     }
     Ok(())
